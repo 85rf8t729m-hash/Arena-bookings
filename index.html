@@ -390,7 +390,7 @@ renderDays();render();
   const cfg=window.FIREBASE_CONFIG||{};
   const onData=(list,fromCache)=>{all=list;ready=true;
     if(!fromCache)$('status').textContent='Live: everyone sees the same bookings.';render()};
-  if(!(cfg.apiKey&&cfg.projectId)){
+  if(!cfg.projectId){
     store=previewStore();
     const st=$('status');st.className='status preview';
     st.textContent='Preview: bookings only save on this phone until the booking database is connected.';
