@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Arena Bookings</title>
+  <meta name="description" content="Check availability and request a booking online. No account needed.">
+  <meta name="theme-color" content="#f6f7f4" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d1210" media="(prefers-color-scheme: dark)">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Arena Bookings">
+  <meta property="og:description" content="Check availability and request a booking online. No account needed.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/icon-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Arena">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="config.js" defer></script>
+  <script src="bookings.js" defer></script>
+  <script src="assets/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#book">Skip to booking</a>
+
+  <div class="problem" id="problem" hidden role="alert"></div>
+
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#top">
+        <img src="assets/icon.svg" alt="" width="30" height="30">
+        <span data-bind="name">Arena</span>
+      </a>
+      <nav class="nav" aria-label="Sections">
+        <a href="#book">Book</a>
+        <a href="#prices">Prices &amp; hours</a>
+        <a href="#info">Info</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="shareTop" type="button" aria-label="Share this page" title="Share this page">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <a class="btn btn-primary btn-sm topbar-book" href="#book">Book</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="wrap hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow">Online booking &middot; No account needed</p>
+          <h1 data-bind="name">Arena</h1>
+          <p class="lede" data-bind="tagline"></p>
+          <p class="hero-desc" data-bind="description"></p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#book">Check availability</a>
+            <a class="btn btn-ghost" href="#contact">Contact us</a>
+          </div>
+          <ul class="hero-facts" id="heroFacts"></ul>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <svg viewBox="0 0 480 340" class="pitch">
+            <defs>
+              <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+                <stop offset="0" stop-color="#fff8d6" stop-opacity=".9"/>
+                <stop offset="1" stop-color="#fff8d6" stop-opacity="0"/>
+              </radialGradient>
+              <clipPath id="pitchClip"><rect x="20" y="20" width="440" height="300" rx="26"/></clipPath>
+            </defs>
+            <rect x="20" y="20" width="440" height="300" rx="26" class="pitch-base"/>
+            <g clip-path="url(#pitchClip)" class="pitch-stripes">
+              <rect x="20" y="20" width="55" height="300"/>
+              <rect x="130" y="20" width="55" height="300"/>
+              <rect x="240" y="20" width="55" height="300"/>
+              <rect x="350" y="20" width="55" height="300"/>
+            </g>
+            <g class="pitch-lines" fill="none">
+              <rect x="48" y="48" width="384" height="244" rx="10"/>
+              <line x1="240" y1="48" x2="240" y2="292"/>
+              <circle cx="240" cy="170" r="44"/>
+              <circle cx="240" cy="170" r="3" class="dot"/>
+            </g>
+            <g>
+              <circle cx="34" cy="34" r="46" fill="url(#glow)"/>
+              <circle cx="446" cy="34" r="46" fill="url(#glow)"/>
+              <circle cx="34" cy="306" r="46" fill="url(#glow)"/>
+              <circle cx="446" cy="306" r="46" fill="url(#glow)"/>
+              <circle cx="34" cy="34" r="7" class="lamp"/>
+              <circle cx="446" cy="34" r="7" class="lamp"/>
+              <circle cx="34" cy="306" r="7" class="lamp"/>
+              <circle cx="446" cy="306" r="7" class="lamp"/>
+            </g>
+          </svg>
+          <div class="hero-badge">
+            <span class="badge-check">
+              <svg viewBox="0 0 24 24" width="16" height="16"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span><strong>Pick a time, send a request</strong><br><span class="muted">Works on any phone, tablet or computer</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="book" class="section section-book" aria-labelledby="bookTitle">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="bookTitle">Book a slot</h2>
+          <p class="muted">Choose a day, tap a start time, then tap an end time if you need longer.</p>
+        </div>
+
+        <div class="book-grid">
+          <div class="card picker">
+            <div class="picker-top">
+              <h3 class="month" id="monthLabel">&nbsp;</h3>
+              <div class="picker-tools">
+                <button class="icon-btn" type="button" id="datesPrev" aria-label="Earlier dates">
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button class="icon-btn" type="button" id="datesNext" aria-label="Later dates">
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <label class="jump">
+                  <span class="sr-only">Jump to a date</span>
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  <input type="date" id="jumpDate">
+                </label>
+              </div>
+            </div>
+
+            <div class="dates" id="dates" role="group" aria-label="Choose a date"></div>
+
+            <div class="day-head">
+              <h3 id="dayTitle">&nbsp;</h3>
+              <p class="muted" id="dayHours"></p>
+            </div>
+
+            <div class="slots" id="slots" role="group" aria-label="Choose times"></div>
+
+            <div class="legend" aria-hidden="true">
+              <span><i class="sw sw-free"></i>Available</span>
+              <span><i class="sw sw-sel"></i>Your choice</span>
+              <span><i class="sw sw-booked"></i>Booked</span>
+            </div>
+            <p class="updated muted" id="updated"></p>
+          </div>
+
+          <aside class="card request" id="request" aria-labelledby="requestTitle">
+            <h3 id="requestTitle">Your request</h3>
+            <div class="summary" id="summary" aria-live="polite"></div>
+
+            <form id="form" novalidate autocomplete="on">
+              <div class="field">
+                <label for="fName">Your name</label>
+                <input id="fName" name="name" type="text" autocomplete="name" required maxlength="80">
+              </div>
+              <div class="field">
+                <label for="fPhone">Phone number</label>
+                <input id="fPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required maxlength="40">
+              </div>
+              <div class="field">
+                <label for="fEmail">Email <span class="opt">optional</span></label>
+                <input id="fEmail" name="email" type="email" autocomplete="email" maxlength="120">
+              </div>
+              <div class="field">
+                <label for="fNotes">Anything else? <span class="opt">optional</span></label>
+                <textarea id="fNotes" name="notes" rows="3" maxlength="600" placeholder="e.g. what it's for, how many people"></textarea>
+              </div>
+
+              <p class="send-label" id="sendLabel">Send your request by</p>
+              <div class="send" id="send"></div>
+              <p class="fine">Your request comes straight to us and we'll reply to confirm. The slot isn't booked until we confirm.</p>
+            </form>
+
+            <div class="sent" id="sent" hidden>
+              <div class="sent-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div>
+                <p class="sent-title" id="sentTitle">Almost done</p>
+                <p class="sent-text" id="sentText"></p>
+                <button type="button" class="btn btn-ghost btn-sm" id="newRequest">Make another request</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="prices" class="section section-alt" aria-labelledby="pricesTitle">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="pricesTitle">Prices &amp; opening hours</h2>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <h3>Prices</h3>
+            <ul class="price-list" id="priceList"></ul>
+            <p class="muted small" id="slotNote"></p>
+          </div>
+          <div class="card">
+            <h3>Opening hours</h3>
+            <ul class="hours-list" id="hoursList"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="info" class="section" aria-labelledby="infoTitle">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="infoTitle">Good to know</h2>
+        </div>
+        <div class="two-col">
+          <div class="card" id="facilitiesCard">
+            <h3>Facilities</h3>
+            <ul class="facilities" id="facilities"></ul>
+          </div>
+          <div class="card" id="faqCard">
+            <h3>Questions</h3>
+            <div class="faqs" id="faqs"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="section section-alt" aria-labelledby="contactTitle">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="contactTitle">Contact &amp; location</h2>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <h3>Get in touch</h3>
+            <ul class="contact-list" id="contactList"></ul>
+          </div>
+          <div class="card">
+            <h3>Find us</h3>
+            <p class="address" id="address"></p>
+            <a class="btn btn-ghost" id="mapBtn" target="_blank" rel="noopener">Open in Maps</a>
+            <div class="share-row">
+              <button type="button" class="btn btn-ghost" id="shareBtn">Share this page</button>
+              <button type="button" class="btn btn-ghost" id="qrBtn">Show QR code</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <span>&copy; <span id="year"></span> <span data-bind="name">Arena</span></span>
+      <span class="muted">Book online any time. No account needed.</span>
+    </div>
+  </footer>
+
+  <div class="bar" id="bar" aria-hidden="true">
+    <div class="bar-inner">
+      <div class="bar-text">
+        <strong id="barMain"></strong>
+        <span id="barSub" class="muted"></span>
+      </div>
+      <button type="button" class="btn btn-primary" id="barGo" tabindex="-1">Continue</button>
+    </div>
+  </div>
+
+  <dialog class="qr-dialog" id="qrDialog" aria-labelledby="qrTitle">
+    <h3 id="qrTitle">Scan to open this page</h3>
+    <div class="qr-box" id="qrBox"></div>
+    <p class="muted small" id="qrUrl"></p>
+    <p class="muted small">Save or print it for posters and flyers. Anyone who scans it can book.</p>
+    <form method="dialog"><button class="btn btn-primary" value="close">Done</button></form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <noscript>
+    <div class="noscript">This booking page needs JavaScript. Please turn it on, or contact us directly by phone or email.</div>
+  </noscript>
+</body>
+</html>
