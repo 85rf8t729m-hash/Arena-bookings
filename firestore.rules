@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /days/{day} {
+      allow read: if true;
+      allow create, update: if day.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        && request.resource.data.keys().hasOnly(['date', 'bookings'])
+        && request.resource.data.date == day
+        && request.resource.data.bookings is list
+        && request.resource.data.bookings.size() <= 200;
+      allow delete: if false;
+    }
+  }
+}
