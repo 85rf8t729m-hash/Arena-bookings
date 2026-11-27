@@ -70,8 +70,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-o
 .key .k-eve{background:var(--free) linear-gradient(135deg,rgba(255,255,255,.5) 25%,transparent 25% 50%,rgba(255,255,255,.5) 50% 75%,transparent 75%);background-size:7px 7px}
 .grid{display:grid;grid-template-columns:52px repeat(4,minmax(0,1fr));gap:4px;align-items:center}
 .grid .h{font-size:14px;font-weight:600;color:var(--mute);white-space:nowrap;text-align:right;padding-right:6px}
-.c{border:0;border-radius:7px;height:34px;padding:0;cursor:pointer;font:inherit;font-size:11px;color:#141a33;font-weight:600;-webkit-tap-highlight-color:transparent}
-.c.free{background:var(--free)}.c.one{background:var(--one)}.c.full{background:var(--full);color:#fff;cursor:not-allowed}.c.past{background:var(--past);cursor:default;color:transparent}
+.c{border:0;border-radius:7px;height:34px;padding:0;cursor:pointer;font:inherit;font-size:12px;font-variant-numeric:tabular-nums;color:#141a33;font-weight:600;-webkit-tap-highlight-color:transparent}
+.c.free{background:var(--free)}.c.one{background:var(--one)}.c.full{background:var(--full);color:#fff;cursor:not-allowed}.c.past{background:var(--past);cursor:default;color:#9aa0b8}
 .c.sel{outline:3px solid #2453ff;outline-offset:-3px}
 .c.eve:not(.past){background-image:linear-gradient(135deg,rgba(255,255,255,.35) 25%,transparent 25% 50%,rgba(255,255,255,.35) 50% 75%,transparent 75%);background-size:10px 10px}
 .done{display:none;text-align:center;padding:28px 10px}
@@ -139,6 +139,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-o
         <input type="text" id="r2" placeholder="Their name" maxlength="40" aria-label="Second rider's name">
         <div class="errt" id="r2err">Please put the second rider's name too.</div>
       </div>
+      <label class="toggle"><input type="checkbox" id="solo"> Private: no one else can join</label>
     </div>
 
     <div class="sum" id="sum" role="status"></div>
@@ -148,6 +149,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-o
       <li>Book any time from 6am to 10pm, for as long as you like.</li>
       <li>If you're riding after 4pm, 45 minutes max.</li>
       <li>Max 2 riders in the arena at once.</li>
+      <li>Tick Private if you want the arena to yourself.</li>
     </ul>
   </form>
 
@@ -207,8 +209,11 @@ function norm(v,date){
   if(!v)return null;const s=Number(v.start),e=Number(v.end);
   if(!isFinite(s)||!isFinite(e)||e<=s)return null;
   const r=(Array.isArray(v.riders)?v.riders:[]).map(x=>String(x).slice(0,40)).filter(Boolean).slice(0,2);
-  return{id:String(v.id||''),date:date||String(v.date||''),start:s,end:e,riders:r.length?r:['Rider'],by:typeof v.by==='string'?v.by:''};
+  return{id:String(v.id||''),date:date||String(v.date||''),start:s,end:e,riders:r.length?r:['Rider'],by:typeof v.by==='string'?v.by:'',solo:v.solo===true};
 }
+/* A private booking fills the arena, so nobody else can join. */
+const use=b=>b.solo?CAP:b.riders.length;
+const who=b=>b.riders.join(' & ')+(b.solo?' (private)':'');
 
 /* ---------- Where bookings are saved ---------- */
 
@@ -232,7 +237,7 @@ function firebaseStore(cfg){
         const snap=await t.get(ref);const list=listOf(snap);
         const err=checkFn(list.map(x=>norm(x,b.date)).filter(Boolean));
         if(err)throw{message:'Sorry, that was just taken. '+err};
-        t.set(ref,{date:b.date,bookings:list.concat([{id:b.id,start:b.start,end:b.end,riders:b.riders,by:b.by,createdAt:b.createdAt}])});
+        t.set(ref,{date:b.date,bookings:list.concat([{id:b.id,start:b.start,end:b.end,riders:b.riders,solo:b.solo,by:b.by,createdAt:b.createdAt}])});
       });
     },
     cancel(date,id){
@@ -272,8 +277,9 @@ function renderDays(){
 
 function getTimes(){const s=toMin($('start').value);const e=dur?s+dur:toMin($('end').value);return{s,e}}
 function riders(){return $('two').checked?2:1}
+function solo(){return $('solo').checked}
 
-function check(d,s,e,n,list){
+function check(d,s,e,n,list,priv){
   if(isNaN(s)||isNaN(e))return'Pick a start time and how long.';
   if(e<=s)return'The finish needs to be after the start.';
   if(e-s<MIN_LEN)return`Bookings need to be at least ${MIN_LEN} minutes.`;
@@ -282,8 +288,10 @@ function check(d,s,e,n,list){
   if(e>EVE&&e-s>EVE_MAX)return`After ${fmt(EVE)} bookings are ${EVE_MAX} minutes max.`;
   const others=(list||all).filter(b=>b.date===d&&b.start<e&&b.end>s);
   for(const t of [s,...others.map(b=>b.start).filter(t=>t>s&&t<e)]){
-    const used=others.filter(b=>b.start<=t&&b.end>t).reduce((a,b)=>a+b.riders.length,0);
-    if(used+n>CAP)return used>=CAP?`The arena is full at ${fmt(t)}. Try another time.`:`Only room for 1 rider at ${fmt(t)}.`;
+    const used=others.filter(b=>b.start<=t&&b.end>t).reduce((a,b)=>a+use(b),0);
+    if(used>=CAP)return`The arena is full at ${fmt(t)}. Try another time.`;
+    if(priv&&used>0)return`Someone's already booked at ${fmt(t)}, so it can't be private then. Untick Private or try another time.`;
+    if(used+n>CAP)return`Only room for 1 rider at ${fmt(t)}.`;
   }
   return'';
 }
@@ -299,20 +307,20 @@ function render(){
 
   const list=all.filter(b=>b.date===day).sort((a,b)=>a.start-b.start);
   $('taken').innerHTML=list.length
-    ?`<b>Already booked ${esc(dayName(day))}</b><ul>${list.map(b=>`<li><span class="t">${esc(fmt(b.start))}–${esc(fmt(b.end))}</span><span class="who">${esc(b.riders.join(' & '))}</span></li>`).join('')}</ul>`
+    ?`<b>Already booked ${esc(dayName(day))}</b><ul>${list.map(b=>`<li><span class="t">${esc(fmt(b.start))}–${esc(fmt(b.end))}</span><span class="who">${esc(who(b))}</span></li>`).join('')}</ul>`
     :`<b>Nothing booked ${esc(dayName(day))} yet</b>The arena is free all day.`;
 
-  const{e}=getTimes(),n=riders(),err=check(day,s,e,n);
+  const{e}=getTimes(),n=riders(),err=check(day,s,e,n,null,solo());
   const today=day===ymd(new Date()),nm=nowMin();let g='';
   for(let h=OPEN;h<CLOSE;h+=60){
     g+=`<span class="h">${fmt(h)}</span>`;
     for(let q=0;q<4;q++){const t=h+q*15;
-      let mx=0;for(let k=t;k<t+15;k+=5){const u=list.filter(b=>b.start<=k&&b.end>k).reduce((a,b)=>a+b.riders.length,0);if(u>mx)mx=u}
+      let mx=0;for(let k=t;k<t+15;k+=5){const u=list.filter(b=>b.start<=k&&b.end>k).reduce((a,b)=>a+use(b),0);if(u>mx)mx=u}
       const past=today&&t+15<=nm;
       const cls=past?'past':mx>=CAP?'full':mx>0?'one':'free';
       const sel=!isNaN(s)&&!isNaN(e)&&t<e&&t+15>s;
       const lab=`${fmt(t)}: ${past?'past':cls==='full'?'booked':cls==='one'?'1 space left':'free'}`;
-      g+=`<button type="button" class="c ${cls}${t+15>EVE?' eve':''}${sel?' sel':''}" data-t="${t}" aria-label="${lab}" title="${lab}"${cls==='full'||past?' disabled':''}>${q===0?'':':'+pad(q*15)}</button>`;
+      g+=`<button type="button" class="c ${cls}${t+15>EVE?' eve':''}${sel?' sel':''}" data-t="${t}" aria-label="${lab}" title="${lab}"${cls==='full'||past?' disabled':''}>${(Math.floor(t/60)%12||12)+'.'+pad(t%60)}</button>`;
     }
   }
   $('grid').innerHTML=g;
@@ -328,7 +336,7 @@ function render(){
   const shown=isAdmin?list:mine;
   $('mineWrap').hidden=!shown.length;
   $('mineWrap').querySelector('h2').textContent=isAdmin?`All bookings ${dayName(day)} (owner)`:'Your bookings';
-  $('mine').innerHTML=shown.map(b=>`<li><div><b>${esc(isAdmin?'':cap1(dayName(b.date))+', ')}${esc(fmt(b.start))}–${esc(fmt(b.end))}</b><div class="who">${esc(b.riders.join(' & '))}</div></div><button type="button" class="btn2" data-del="${esc(b.id)}" data-date="${esc(b.date)}">Cancel</button></li>`).join('');
+  $('mine').innerHTML=shown.map(b=>`<li><div><b>${esc(isAdmin?'':cap1(dayName(b.date))+', ')}${esc(fmt(b.start))}–${esc(fmt(b.end))}</b><div class="who">${esc(who(b))}</div></div><button type="button" class="btn2" data-del="${esc(b.id)}" data-date="${esc(b.date)}">Cancel</button></li>`).join('');
 }
 
 function checkNames(){
@@ -348,6 +356,7 @@ $('grid').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!
   $('start').value=toVal(t);if(dur&&t+dur>EVE&&dur>EVE_MAX)dur=EVE_MAX;if(dur&&t+dur>CLOSE)dur=Math.max(MIN_LEN,CLOSE-t);render();
   $('start').scrollIntoView({behavior:'smooth',block:'center'})});
 $('two').addEventListener('change',()=>{$('r2wrap').classList.toggle('on',$('two').checked);if($('two').checked)$('r2').focus();checkNames();render()});
+$('solo').addEventListener('change',render);
 $('r1').addEventListener('input',checkNames);$('r2').addEventListener('input',checkNames);
 window.addEventListener('hashchange',()=>{isAdmin=location.hash==='#owner';render()});
 
@@ -356,17 +365,18 @@ $('form').addEventListener('submit',async ev=>{
   tried=true;
   if(!checkNames()){($('r1').value.trim().length<2?$('r1'):$('r2')).focus();return}
   const{s,e}=getTimes(),n=riders();
-  if(!store||!ready||check(day,s,e,n)){render();return}
+  const priv=solo();
+  if(!store||!ready||check(day,s,e,n,null,priv)){render();return}
   const r1=$('r1').value.trim().slice(0,40),r2=$('r2').value.trim().slice(0,40);
   try{localStorage.setItem('arena-name',r1)}catch(_){}
   saving=true;render();
   try{
-    const booking={id:newId('b'),date:day,start:s,end:e,riders:n===2?[r1,r2]:[r1],by:uid,createdAt:new Date().toISOString()};
-    await store.book(booking,list=>check(day,s,e,n,list));
+    const booking={id:newId('b'),date:day,start:s,end:e,riders:n===2?[r1,r2]:[r1],solo:priv,by:uid,createdAt:new Date().toISOString()};
+    await store.book(booking,list=>check(day,s,e,n,list,priv));
     saving=false;
-    $('doneText').textContent=`${cap1(dayName(day))}, ${fmt(s)}–${fmt(e)} for ${n===2?r1+' & '+r2:r1}.`;
+    $('doneText').textContent=`${cap1(dayName(day))}, ${fmt(s)}–${fmt(e)} for ${n===2?r1+' & '+r2:r1}${priv?' (private: no one else can join)':''}.`;
     $('form').style.display='none';$('done').classList.add('on');
-    $('two').checked=false;$('r2').value='';$('r2wrap').classList.remove('on');tried=false;
+    $('two').checked=false;$('solo').checked=false;$('r2').value='';$('r2wrap').classList.remove('on');tried=false;
     render();window.scrollTo({top:0,behavior:'smooth'});
   }catch(err){
     saving=false;render();

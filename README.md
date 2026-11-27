@@ -4,7 +4,7 @@ A simple booking page for the arena. Anyone with the link can book on any phone,
 
 People put their name, pick a day, a start time and how long, and tap **Book it**. Everyone sees the same bookings straight away.
 
-**Rules built in:** 6am–10pm, 45 minutes max after 4pm, and no more than 2 riders in the arena at once. To change them, edit the numbers near the top of the script in `index.html`.
+**Rules built in:** 6am–10pm, 45 minutes max after 4pm, and no more than 2 riders in the arena at once. Ticking **Private** keeps the arena to yourself for that booking. To change them, edit the numbers near the top of the script in `index.html`.
 
 ---
 
